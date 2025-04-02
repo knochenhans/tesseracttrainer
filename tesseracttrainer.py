@@ -16,6 +16,8 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt, Signal, QSettings
 import sys
 
+from model_trainer import ModelTrainer
+
 
 class CustomTextEditor(QLineEdit):
     ctrlEnterPressed = Signal()
@@ -64,7 +66,7 @@ class ImageTextWindow(QMainWindow):
         self.text_editor.ctrlEnterPressed.connect(self.load_next)
         grid_layout.addWidget(self.text_editor)
 
-        # Previous, Next, Remove buttons
+        # Previous, Next, Remove, Train buttons
         button_layout = QHBoxLayout()
         self.prev_button = QPushButton("Previous")
         self.prev_button.clicked.connect(self.load_previous)
@@ -78,12 +80,16 @@ class ImageTextWindow(QMainWindow):
         self.remove_button.clicked.connect(self.remove_current_pair)
         button_layout.addWidget(self.remove_button)
 
+        self.train_button = QPushButton("Train")
+        self.train_button.clicked.connect(self.train_model)
+        button_layout.addWidget(self.train_button)
+
         grid_layout.addLayout(button_layout)
 
         # Second row: Path button and label
         path_layout = QHBoxLayout()
-        self.set_path_button = QPushButton("Set Base Path")
-        self.set_path_button.clicked.connect(self.set_base_path)
+        self.set_path_button = QPushButton("Set GT Base Path")
+        self.set_path_button.clicked.connect(self.set_ground_truth_base_path)
         path_layout.addWidget(self.set_path_button)
 
         self.path_label = QLabel(f"Base Path: {self.base_path}")
@@ -102,7 +108,15 @@ class ImageTextWindow(QMainWindow):
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
-    def set_base_path(self) -> None:
+    def train_model(self) -> None:
+        model_trainer = ModelTrainer(
+            model_name="deu",
+            base_dir=self.base_path,
+            tessdata_dir="/usr/share/tessdata",
+        )
+        model_trainer.train_model()
+
+    def set_ground_truth_base_path(self) -> None:
         directory = QFileDialog.getExistingDirectory(
             self, "Select Ground Thruth Base Path"
         )
